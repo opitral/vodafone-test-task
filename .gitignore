@@ -3,3 +3,4 @@ venv/
 .env
 resources/output/*
 !resources/output/.gitkeep
+*.log
