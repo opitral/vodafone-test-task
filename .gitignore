@@ -1,0 +1,5 @@
+.idea/
+venv/
+.env
+resources/output/*
+!resources/output/.gitkeep
