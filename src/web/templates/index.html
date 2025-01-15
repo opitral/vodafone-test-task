@@ -47,7 +47,7 @@
         </fieldset>
 
         <fieldset class="mb-4">
-            <legend>Grid</legend>
+            <legend>Grids</legend>
             <div class="mb-3">
                 <label for="gridSize" class="form-label">Grid size (km)</label>
                 <input name="gridSizeInput" min="1" max="100" value="15" type="number" class="form-control" id="gridSize"
@@ -56,6 +56,19 @@
             <div class="form-check">
                 <input name="notMatchingGridCheckbox" type="checkbox" class="form-check-input" id="notMathingGridCheckbox">
                 <label class="form-check-label" for="notMathingGridCheckbox">Not mathing grid</label>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Sectors</legend>
+            <div class="mb-3">
+                <label for="sectorRadius" class="form-label">Sector radius (km)</label>
+                <input name="sectorRadiusInput" min="1" max="100" value="5" type="number" class="form-control" id="sectorRadius"
+                       placeholder="Enter grid size" required>
+            </div>
+            <div class="form-check">
+                <input checked name="sectorsCheckbox" type="checkbox" class="form-check-input" id="sectorsCheckbox">
+                <label class="form-check-label" for="sectorsCheckbox">Sectors</label>
             </div>
         </fieldset>
 

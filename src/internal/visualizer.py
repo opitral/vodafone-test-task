@@ -4,7 +4,6 @@ from pathlib import Path
 import folium
 from folium.plugins import Fullscreen
 from shapely import Point
-from shapely.geometry.base import BaseGeometry
 
 from pkg.config import CENTER_LAT, CENTER_LON
 from pkg.logger import get_logger

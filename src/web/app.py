@@ -29,6 +29,8 @@ def generate_map():
     extreme_points_enabled = request.form.get("extremePointsCheckbox") == "on"
     grid_size = int(request.form.get("gridSizeInput"))
     not_matching_grid_enabled = request.form.get("notMatchingGridCheckbox") == "on"
+    sectors_enabled = request.form.get("sectorsCheckbox") == "on"
+    sector_radius = int(request.form.get("sectorRadiusInput"))
 
     analyzer = GeoAnalyzer(Path(__file__).parent.parent.parent / "resources/geojson" / geojson_name)
     visualizer = GeoVisualizer()
@@ -54,16 +56,17 @@ def generate_map():
     if not_matching_grid_enabled:
         visualizer.add_polygon(not_matching_grid, "Not matching grid", color="red")
 
-    for square in grid.matches:
-        minx, miny, maxx, maxy = square.bounds
-        for point in [(minx, miny), (minx, maxy), (maxx, miny), (maxx, maxy)]:
-            for azimuth in [0, 120, 240]:
-                sector = analyzer.generate_sector(Point(*point), azimuth, radius=50)
-                visualizer.add_polygon(
-                    sector,
-                    f"Sector from {point} with {azimuth}°",
-                    color=random.choice(["blue", "green", "yellow", "purple", "orange", "pink", "brown"])
-                )
+    if sectors_enabled:
+        for square in grid.matches:
+            minx, miny, maxx, maxy = square.bounds
+            for point in [(minx, miny), (minx, maxy), (maxx, miny), (maxx, maxy)]:
+                for azimuth in [0, 120, 240]:
+                    sector = analyzer.generate_sector(Point(*point), azimuth, sector_radius)
+                    visualizer.add_polygon(
+                        sector,
+                        f"Sector from {point} with {azimuth}°",
+                        color=random.choice(["blue", "green", "yellow", "purple", "orange", "pink", "brown"])
+                    )
 
     visualizer.add_controls()
     map_path = visualizer.save()
