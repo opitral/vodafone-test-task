@@ -3,6 +3,8 @@ from pathlib import Path
 
 import folium
 from folium.plugins import Fullscreen
+from shapely import Point
+from shapely.geometry.base import BaseGeometry
 
 from pkg.config import CENTER_LAT, CENTER_LON
 from pkg.logger import get_logger
@@ -13,10 +15,11 @@ class GeoVisualizer:
         self.logger = get_logger(__name__)
         self.map = folium.Map(location=[CENTER_LAT, CENTER_LON], zoom_start=zoom_start)
 
-    def add_borders(self, data, color: str = "blue", weight: int = 2, fill_opacity: float = 0.1):
+    def add_polygon(self, data, name: str,
+                    color: str = "blue", weight: int = 2, fill_opacity: float = 0.1):
         folium.GeoJson(
             data,
-            name="Borders",
+            name=name,
             style_function=lambda x: {
                 "color": color,
                 "weight": weight,
@@ -24,9 +27,9 @@ class GeoVisualizer:
             }
         ).add_to(self.map)
 
-    def add_marker(self, lat: float, lon: float, popup: str, color: str = "red", icon: str = "info-sign"):
+    def add_point(self, point: Point, popup: str, color: str = "red", icon: str = "info-sign"):
         folium.Marker(
-            location=[lat, lon],
+            location=[point.y, point.x],
             popup=popup,
             icon=folium.Icon(color=color, icon=icon)
         ).add_to(self.map)
@@ -37,17 +40,6 @@ class GeoVisualizer:
             color=color,
             weight=weight,
             dash_array=dash_array
-        ).add_to(self.map)
-
-    def add_grid(self, data, name: str, color: str = "green", weight: float = 0.5, fill_opacity: float = 0.1):
-        folium.GeoJson(
-            data,
-            name=name,
-            style_function=lambda x: {
-                "color": color,
-                "weight": weight,
-                "fillOpacity": fill_opacity,
-            }
         ).add_to(self.map)
 
     def add_controls(self):

@@ -1,8 +1,6 @@
 import logging
 from pathlib import Path
 
-from pkg.config import settings
-
 
 def get_logger(name: str) -> logging.Logger:
     logger = logging.getLogger(name)
@@ -19,7 +17,7 @@ def get_logger(name: str) -> logging.Logger:
         console_handler.setFormatter(formatter)
 
         file_handler = logging.FileHandler(
-            Path(__file__).parent.parent.parent / f"{settings.LOG_FILE_NAME}.log",
+            Path(__file__).parent.parent.parent / "app.log",
             encoding="utf-8"
         )
         file_handler.setLevel(logging.WARNING)

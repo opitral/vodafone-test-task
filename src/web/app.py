@@ -1,7 +1,10 @@
 import os
+import random
 from pathlib import Path
 
+import geopandas as gpd
 from flask import Flask, request, render_template, send_from_directory
+from shapely import Point
 
 from internal.analyzer import GeoAnalyzer
 from internal.visualizer import GeoVisualizer
@@ -31,33 +34,36 @@ def generate_map():
     visualizer = GeoVisualizer()
 
     if borders_enabled:
-        visualizer.add_borders(analyzer.geojson_file)
+        visualizer.add_polygon(analyzer.geojson_file, "Borders of the Ukraine")
 
     if bounding_box_enabled:
         visualizer.add_rectangle(analyzer.bounds)
 
     if center_marker_enabled:
-        visualizer.add_marker(CENTER_LAT, CENTER_LON, "Center point")
+        visualizer.add_point(Point(CENTER_LON, CENTER_LAT), "Center point")
 
     if extreme_points_enabled:
         extreme_points = analyzer.get_extreme_points()
-        visualizer.add_marker(
-            extreme_points["north"][0], extreme_points["north"][1], "Northernmost point", color="blue"
-        )
-        visualizer.add_marker(
-            extreme_points["south"][0], extreme_points["south"][1], "Southernmost point", color="blue"
-        )
-        visualizer.add_marker(
-            extreme_points["west"][0], extreme_points["west"][1], "Westernmost point", color="blue"
-        )
-        visualizer.add_marker(
-            extreme_points["east"][0], extreme_points["east"][1], "Easternmost point", color="blue"
-        )
+        for point in extreme_points:
+            visualizer.add_point(point.point, point.direction.value.capitalize() + "ern most point")
 
-    matching_grid, not_mathing_grid = analyzer.generate_grid(grid_size)
-    visualizer.add_grid(matching_grid, "Matching grid")
+    grid = analyzer.generate_grid(grid_size)
+    matching_grid = gpd.GeoDataFrame({"geometry": grid.matches}, crs="EPSG:4326")
+    not_matching_grid = gpd.GeoDataFrame({"geometry": grid.not_matches}, crs="EPSG:4326")
+    visualizer.add_polygon(matching_grid, "Matching grid")
     if not_matching_grid_enabled:
-        visualizer.add_grid(not_mathing_grid, "Not matching grid", color="red")
+        visualizer.add_polygon(not_matching_grid, "Not matching grid", color="red")
+
+    for square in grid.matches:
+        minx, miny, maxx, maxy = square.bounds
+        for point in [(minx, miny), (minx, maxy), (maxx, miny), (maxx, maxy)]:
+            for azimuth in [0, 120, 240]:
+                sector = analyzer.generate_sector(Point(*point), azimuth, radius=50)
+                visualizer.add_polygon(
+                    sector,
+                    f"Sector from {point} with {azimuth}°",
+                    color=random.choice(["blue", "green", "yellow", "purple", "orange", "pink", "brown"])
+                )
 
     visualizer.add_controls()
     map_path = visualizer.save()

@@ -1,71 +1,91 @@
-import json
+from typing import List
 
-from sqlalchemy import create_engine, text
+from shapely import Polygon
+from shapely.geometry.base import BaseGeometry
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import SQLAlchemyError
+from geoalchemy2.shape import from_shape, to_shape
 
+from internal.models import Base, Feature, Square
+from internal.analyzer import Feature as FeatureModel
 from pkg.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class DatabaseConnector:
     def __init__(self, connection_string: str):
-        self.logger = get_logger(__name__)
         self.engine = create_engine(connection_string)
-        self.session = sessionmaker(bind=self.engine)()
+        self.Session = sessionmaker(bind=self.engine)
+        self.session = self.Session()
+        self._initialize_database()
 
-    def enable_postgis(self):
-        self.session.execute(text("CREATE EXTENSION IF NOT EXISTS postgis"))
-        self.session.commit()
-        self.logger.debug("PostGIS enabled")
-
-    def create_all_tables(self):
-        self.session.execute(text('''
-            CREATE TABLE IF NOT EXISTS features (
-                id   SERIAL PRIMARY KEY, 
-                name VARCHAR(255)                     NULL, 
-                geom GEOMETRY(MultiPolygon, 4326) NOT NULL
-            )
-        '''))
-        self.session.commit()
-        self.logger.debug("All tables created")
+    def _initialize_database(self):
+        Base.metadata.create_all(self.engine)
+        logger.debug("All tables created")
 
     def drop_all_tables(self):
-        self.session.execute(text("DROP TABLE IF EXISTS features"))
-        self.session.commit()
-        self.logger.debug("All tables dropped")
+        Base.metadata.drop_all(self.engine)
+        logger.debug("All tables dropped")
 
     def __del__(self):
         self.session.close()
-        self.logger.debug("Session closed")
 
-    def create_feature(self, name: str, geom: dict):
+    def create_feature(self, feature: FeatureModel):
         try:
-            geojson_geom = json.dumps(geom)
-            self.session.execute(text('''
-                INSERT INTO features (name, geom) 
-                VALUES (:name, ST_GeomFromGeoJSON(:geojson))
-            '''), {"name": name, "geojson": geojson_geom})
+            feature = Feature(
+                name=feature.name,
+                geom=from_shape(feature.geom, srid=4326)
+            )
+            self.session.add(feature)
             self.session.commit()
-            self.logger.info(f"Feature {name} created")
+            logger.info(f"Feature '{feature.name}' created")
+        except SQLAlchemyError as e:
+            self.session.rollback()
+            logger.error(f"Failed to create feature '{feature.name}': {e}")
 
-        except Exception as e:
-            self.logger.error(f"Failed to create feature {name}: {e}")
+    def get_all_features(self) -> List[FeatureModel]:
+        try:
+            features = self.session.query(Feature).all()
+            return [FeatureModel(name=str(f.name), geom=to_shape(f.geom)) for f in features]
 
-    def get_features_geojson(self):
-        features = self.session.execute(text(
-            "SELECT name, ST_AsGeoJSON(geom) AS geojson FROM features"
-        )).fetchall()
+        except SQLAlchemyError as e:
+            logger.error(f"Failed to fetch features: {e}")
+            return []
 
-        geojson = {
-            "type": "FeatureCollection",
-            "features": []
-        }
+    def delete_all_features(self):
+        try:
+            self.session.query(Feature).delete()
+            self.session.commit()
+            logger.info("All features deleted")
+        except SQLAlchemyError as e:
+            self.session.rollback()
+            logger.error(f"Failed to delete features: {e}")
 
-        for name, geom in features:
-            if geom:
-                geojson["features"].append({
-                    "type": "Feature",
-                    "properties": {"name": name},
-                    "geometry": json.loads(geom)
-                })
+    def create_square(self, geom: BaseGeometry):
+        try:
+            square = Square(geom=from_shape(geom, srid=4326))
+            self.session.add(square)
+            self.session.commit()
+            logger.info("Square created")
+        except SQLAlchemyError as e:
+            self.session.rollback()
+            logger.error(f"Failed to create square: {e}")
 
-        return geojson
+    def get_all_squares(self) -> List[Polygon]:
+        try:
+            squares = self.session.query(Square).all()
+            return [to_shape(s.geom) for s in squares]
+        except SQLAlchemyError as e:
+            logger.error(f"Failed to fetch squares: {e}")
+            return []
+
+    def delete_all_squares(self):
+        try:
+            self.session.query(Square).delete()
+            self.session.commit()
+            logger.info("All squares deleted")
+        except SQLAlchemyError as e:
+            self.session.rollback()
+            logger.error(f"Failed to delete squares: {e}")
