@@ -10,67 +10,28 @@
 <div class="w-50">
     <h3 class="text-center">Map settings</h3>
     <hr class="mb-1">
-    <form action="/map" method="post" class="p-2">
+    <form action="/map" method="get" class="p-2">
 
-        <fieldset class="mb-4">
-            <legend>Files</legend>
+        <div class="mb-3">
             <label for="geojsonSelect" class="form-label">GeoJSON</label>
-            <select name="geojsonSelect" id="geojsonSelect" class="form-select form-select-sm">
+            <select name="geojson" id="geojsonSelect" class="form-select form-select-sm">
                 {% for geojson_file in geojson_files %}
                     <option value="{{ geojson_file }}.geojson">{{ geojson_file }}</option>
                 {% endfor %}
             </select>
-        </fieldset>
+        </div>
 
-        <fieldset class="mb-4">
-            <legend>Borders</legend>
-            <div class="form-check">
-                <input name="bordersCheckbox" type="checkbox" class="form-check-input" id="bordersCheckbox" checked>
-                <label class="form-check-label" for="bordersCheckbox">Main borders</label>
-            </div>
-            <div class="form-check">
-                <input name="boundingBoxCheckbox" type="checkbox" class="form-check-input" id="boundingBoxCheckbox">
-                <label class="form-check-label" for="boundingBoxCheckbox">Bounding box</label>
-            </div>
-        </fieldset>
+        <div class="mb-3">
+            <label for="gridSize" class="form-label">Grid size (km)</label>
+            <input name="gridSize" min="1" max="100" value="15" type="number" class="form-control" id="gridSize"
+                   placeholder="Enter grid size" required>
+        </div>
 
-        <fieldset class="mb-4">
-            <legend>Points</legend>
-            <div class="form-check">
-                <input name="centerPointCheckbox" type="checkbox" class="form-check-input" id="centerPointCheckbox">
-                <label class="form-check-label" for="centerPointCheckbox">Center point</label>
-            </div>
-            <div class="form-check">
-                <input name="extremePointsCheckbox" type="checkbox" class="form-check-input" id="extremePointsCheckbox">
-                <label class="form-check-label" for="extremePointsCheckbox">Extreme points</label>
-            </div>
-        </fieldset>
-
-        <fieldset class="mb-4">
-            <legend>Grids</legend>
-            <div class="mb-3">
-                <label for="gridSize" class="form-label">Grid size (km)</label>
-                <input name="gridSizeInput" min="1" max="100" value="15" type="number" class="form-control" id="gridSize"
-                       placeholder="Enter grid size" required>
-            </div>
-            <div class="form-check">
-                <input name="notMatchingGridCheckbox" type="checkbox" class="form-check-input" id="notMathingGridCheckbox">
-                <label class="form-check-label" for="notMathingGridCheckbox">Not mathing grid</label>
-            </div>
-        </fieldset>
-
-        <fieldset>
-            <legend>Sectors</legend>
-            <div class="mb-3">
-                <label for="sectorRadius" class="form-label">Sector radius (km)</label>
-                <input name="sectorRadiusInput" min="1" max="100" value="5" type="number" class="form-control" id="sectorRadius"
-                       placeholder="Enter grid size" required>
-            </div>
-            <div class="form-check">
-                <input checked name="sectorsCheckbox" type="checkbox" class="form-check-input" id="sectorsCheckbox">
-                <label class="form-check-label" for="sectorsCheckbox">Sectors</label>
-            </div>
-        </fieldset>
+        <div class="mb-3">
+            <label for="sectorRadius" class="form-label">Sector radius (km)</label>
+            <input name="sectorRadius" min="1" max="100" value="5" type="number" class="form-control" id="sectorRadius"
+                   placeholder="Enter grid size" required>
+        </div>
 
         <button type="submit" class="btn btn-primary w-100">Generate Map</button>
 

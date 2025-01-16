@@ -2,24 +2,28 @@ from pathlib import Path
 
 from internal.analyzer import GeoAnalyzer
 from internal.database import DatabaseConnector
-from internal.visualizer import GeoVisualizer
+from internal.models import SectorVertexIntersection
 from pkg.config import settings
-
-db = DatabaseConnector(
-    f"postgresql+psycopg2://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@localhost/{settings.POSTGRES_DB}"
-)
 
 
 def main():
+    db = DatabaseConnector(
+        f"postgresql+psycopg2://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@localhost/{settings.POSTGRES_DB}"
+    )
+
     geojson_path = Path(__file__).parent.parent / "resources/geojson" / "UKR-ADM1_simplified.geojson"
-    analyzer = GeoAnalyzer(geojson_path)
-    visualizer = GeoVisualizer()
+    analyzer = GeoAnalyzer(geojson_path, db)
 
-    extreme_point = analyzer.get_extreme_points()
-    for point in extreme_point:
-        visualizer.add_point(point.point, point.direction.value.capitalize() + "ern most point")
+    grid = analyzer.generate_grid(100)
+    sectors = analyzer.generate_sectors_for_squares(grid.matches, radius=100)
 
-    visualizer.save()
+    for sector in sectors:
+        for square in grid.matches:
+            for is_intersecting, vertex in sector.check_square_vertices_intersection(square):
+                if is_intersecting:
+                    db.create_sector_vertex_intersection(
+                        SectorVertexIntersection(sector_id=sector.id, vertex_id=vertex.id)
+                    )
 
 
 if __name__ == "__main__":
