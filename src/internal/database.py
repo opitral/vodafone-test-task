@@ -32,7 +32,7 @@ class DatabaseConnector:
             model.geometry = from_shape(model.geometry, srid=4326)
             self.session.add(model)
             self.session.commit()
-            logger.info(f"Feature '{model.name}' created")
+            logger.debug(f"Feature '{model.name}' created")
             return model.id
         except SQLAlchemyError as e:
             self.session.rollback()
@@ -50,7 +50,7 @@ class DatabaseConnector:
         try:
             self.session.query(Feature).delete()
             self.session.commit()
-            logger.info("All features deleted")
+            logger.debug("All features deleted")
         except SQLAlchemyError as e:
             self.session.rollback()
             logger.error(f"Failed to delete features: {e}")
@@ -59,7 +59,7 @@ class DatabaseConnector:
         try:
             self.session.add(model)
             self.session.commit()
-            logger.info("Square created")
+            logger.debug("Square created")
             return model.id
         except SQLAlchemyError as e:
             self.session.rollback()
@@ -69,7 +69,7 @@ class DatabaseConnector:
         try:
             self.session.add(model)
             self.session.commit()
-            logger.info("Grid created")
+            logger.debug("Grid created")
             return model.id
         except SQLAlchemyError as e:
             self.session.rollback()
@@ -80,7 +80,7 @@ class DatabaseConnector:
             model.point = from_shape(model.point, srid=4326)
             self.session.add(model)
             self.session.commit()
-            logger.info("Vertex created")
+            logger.debug("Vertex created")
             return model.id
         except SQLAlchemyError as e:
             self.session.rollback()
@@ -91,7 +91,7 @@ class DatabaseConnector:
             model.polygon = from_shape(model.polygon, srid=4326)
             self.session.add(model)
             self.session.commit()
-            logger.info("Sector created")
+            logger.debug("Sector created")
             return model.id
         except SQLAlchemyError as e:
             self.session.rollback()
@@ -117,7 +117,7 @@ class DatabaseConnector:
         try:
             self.session.query(Square).delete()
             self.session.commit()
-            logger.info("All squares deleted")
+            logger.debug("All squares deleted")
         except SQLAlchemyError as e:
             self.session.rollback()
             logger.error(f"Failed to delete squares: {e}")
@@ -126,7 +126,7 @@ class DatabaseConnector:
         try:
             self.session.query(Sector).delete()
             self.session.commit()
-            logger.info("All sectors deleted")
+            logger.debug("All sectors deleted")
         except SQLAlchemyError as e:
             self.session.rollback()
             logger.error(f"Failed to delete sectors: {e}")
@@ -135,7 +135,7 @@ class DatabaseConnector:
         try:
             self.session.query(Vertex).delete()
             self.session.commit()
-            logger.info("All vertices deleted")
+            logger.debug("All vertices deleted")
         except SQLAlchemyError as e:
             self.session.rollback()
             logger.error(f"Failed to delete vertices: {e}")
@@ -168,7 +168,7 @@ class DatabaseConnector:
         try:
             self.session.add(model)
             self.session.commit()
-            logger.info("Sector-vertex intersection created")
+            logger.debug("Sector-vertex intersection created")
         except SQLAlchemyError as e:
             self.session.rollback()
             logger.error(f"Failed to create sector-vertex intersection: {e}")

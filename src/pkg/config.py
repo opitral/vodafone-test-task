@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     POSTGRES_DB: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
+    FLASK_PORT: int = 8080
 
     model_config = ConfigDict()
 
